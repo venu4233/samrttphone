@@ -2,10 +2,21 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
-# Title of the app
-st.set_page_config(page_title="Phone Addiction Predictor", page_icon="📱")
+# Page config
+st.set_page_config(
+    page_title="Phone Addiction Predictor",
+    page_icon="📱",
+    layout="centered"
+)
+
+# Title and description
 st.title("📱 Phone Addiction Predictor")
-st.markdown("### Predict if you're at risk of phone addiction based on your daily usage.")
+st.markdown(
+    """
+    This tool uses your daily phone usage patterns to predict whether you're at risk of phone addiction.
+    Just move the sliders in the sidebar and click **Predict**!
+    """
+)
 
 # --- Train the model ---
 data = {
@@ -18,29 +29,37 @@ df = pd.DataFrame(data)
 X = df[['screen_time', 'unlock_count', 'response_time']]
 y = df['label']
 
-model = RandomForestClassifier()
+model = RandomForestClassifier(random_state=42)
 model.fit(X, y)
 
-# --- User Inputs ---
-st.sidebar.header("📊 Input your phone usage data")
+# --- Sidebar Inputs ---
+st.sidebar.header("📊 Your Usage Data")
 
-screen_time = st.sidebar.slider("Screen Time (hours)", 0.0, 12.0, 3.0, step=0.1)
-unlock_count = st.sidebar.slider("Unlock Count per Day", 0, 200, 60, step=1)
-response_time = st.sidebar.slider("Response Time to Notifications (sec)", 0, 60, 15, step=1)
+screen_time = st.sidebar.slider("Screen Time (hours)", 0.0, 12.0, 3.0, 0.1)
+unlock_count = st.sidebar.slider("Unlocks per Day", 0, 200, 60, 1)
+response_time = st.sidebar.slider("Notification Response Time (sec)", 0, 60, 15, 1)
 
-if st.sidebar.button("Predict Addiction Risk"):
+if st.sidebar.button("🔍 Predict"):
+    # Make prediction
     user_data = [[screen_time, unlock_count, response_time]]
     prediction = model.predict(user_data)[0]
+    prediction_proba = model.predict_proba(user_data)[0][1]  # probability of being addicted
 
-    # --- Results Display ---
-    st.subheader("🔍 Prediction Result")
+    # Show prediction result
+    st.markdown("---")
+    st.subheader("🔎 Prediction Result")
+
     if prediction == 1:
         st.error("⚠️ You might be *Addicted* to your phone.")
     else:
-        st.success("✅ You are *Not Addicted*.")
+        st.success("✅ You're *Not Addicted*. Keep it up!")
 
-    st.markdown("---")
-    st.subheader("💡 Recommendations")
+    # Visual risk indicator
+    st.markdown("#### 📊 Risk Level")
+    st.progress(int(prediction_proba * 100))
+
+    # Recommendations
+    st.markdown("### 💡 Personalized Recommendations")
 
     if screen_time > 6:
         st.write("- ⏳ Try to reduce screen time to under 5 hours daily.")
