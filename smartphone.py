@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from IPython.display import display
 import ipywidgets as widgets
+from IPython.display import display
 
 # Model training
 data = {
